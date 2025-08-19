@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CarreraAvatar"
 include(":app")
-include(":appcarreraavatar")
+include(":mobile")
