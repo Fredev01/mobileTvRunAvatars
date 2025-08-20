@@ -10,20 +10,34 @@ import androidx.tv.material3.lightColorScheme
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun CarreraAvatarTheme(
-    isInDarkTheme: Boolean = isSystemInDarkTheme(),
+    isInDarkTheme: Boolean = true, // Forzar tema oscuro para mejor experiencia en TV
     content: @Composable () -> Unit,
 ) {
     val colorScheme = if (isInDarkTheme) {
         darkColorScheme(
-            primary = Purple80,
-            secondary = PurpleGrey80,
-            tertiary = Pink80
+            primary = GameBlue,
+            secondary = GameGreen,
+            tertiary = GameOrange,
+            background = GameDarkBlue,
+            surface = GameSurface,
+            onPrimary = GameWhite,
+            onSecondary = GameWhite,
+            onTertiary = GameWhite,
+            onBackground = GameWhite,
+            onSurface = GameWhite
         )
     } else {
         lightColorScheme(
-            primary = Purple40,
-            secondary = PurpleGrey40,
-            tertiary = Pink40
+            primary = GameBlue,
+            secondary = GameGreen,
+            tertiary = GameOrange,
+            background = GameLightBlue,
+            surface = GameLightSurface,
+            onPrimary = GameWhite,
+            onSecondary = GameWhite,
+            onTertiary = GameWhite,
+            onBackground = GameDarkBlue,
+            onSurface = GameDarkBlue
         )
     }
     MaterialTheme(

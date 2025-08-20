@@ -2,10 +2,20 @@ package com.example.carreraavatar.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Colores del juego - Tema oscuro
+val GameBlue = Color(0xFF2196F3)
+val GameGreen = Color(0xFF4CAF50)
+val GameOrange = Color(0xFFFF9800)
+val GameDarkBlue = Color(0xFF1A237E)
+val GameSurface = Color(0xFF424242)
+val GameWhite = Color(0xFFFFFFFF)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Colores del juego - Tema claro
+val GameLightBlue = Color(0xFFE3F2FD)
+val GameLightSurface = Color(0xFFF5F5F5)
+
+// Colores adicionales para el juego
+val GameRed = Color(0xFFF44336)
+val GameYellow = Color(0xFFFFEB3B)
+val GamePurple = Color(0xFF9C27B0)
+val GameTeal = Color(0xFF009688)
