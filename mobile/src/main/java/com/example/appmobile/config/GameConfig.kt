@@ -2,7 +2,7 @@ package com.example.appmobile.config
 
 object GameConfig {
     // URL por defecto del servidor WebSocket
-    const val DEFAULT_SERVER_URL = "ws://192.168.1.100:8080"
+    const val DEFAULT_SERVER_URL = "ws://10.0.2.15:8080"
     
     // Tiempo de timeout para conexiones
     const val CONNECTION_TIMEOUT_SECONDS = 10L
