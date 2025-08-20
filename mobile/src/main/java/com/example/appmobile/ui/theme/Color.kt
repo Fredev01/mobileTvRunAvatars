@@ -1,4 +1,4 @@
-package com.example.appcarreraavatar.ui.theme
+package com.example.appmobile.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
