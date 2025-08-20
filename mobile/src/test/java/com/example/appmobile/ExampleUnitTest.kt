@@ -1,4 +1,4 @@
-package com.example.appcarreraavatar
+package com.example.appmobile
 
 import org.junit.Test
 

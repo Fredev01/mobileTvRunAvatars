@@ -1,155 +1,191 @@
-# Carrera de Avatares - Android TV Multiplayer Game
+# Carrera Avatar - Android Mobile Client
 
-Una aplicación Android TV que funciona como host para un juego multijugador local. Los jugadores pueden conectarse desde sus dispositivos móviles usando un código de sala único.
+Cliente Android Mobile para el juego multijugador de carreras con avatares.
+
+## Descripción
+
+Este es el cliente móvil Android que permite a los jugadores conectarse a una sala de juego, seleccionar su avatar y participar en carreras multijugador controladas por la TV Android (servidor).
 
 ## Características
 
-### Fase 1 - Lobby del Juego
-- ✅ **Código de sala único**: Genera automáticamente un código de 4 dígitos al iniciar
-- ✅ **Servidor WebSocket local**: Permite conexiones desde dispositivos móviles
-- ✅ **Validación de código**: Verifica que el código ingresado coincida con el de la TV
-- ✅ **Lista de jugadores en tiempo real**: Muestra los jugadores conectados
-- ✅ **UI optimizada para Android TV**: Interfaz diseñada para control remoto
+### ✅ Configuración del Proyecto Android Mobile
 
-## Estructura del Proyecto
+- Proyecto configurado con Jetpack Compose
+- Dependencias WebSocket y navegación agregadas
+- Permisos de internet configurados
 
-```
-app/src/main/java/com/example/carreraavatar/
-├── MainActivity.kt                    # Actividad principal
-├── model/                            # Modelos de datos
-│   ├── Player.kt                     # Modelo de jugador
-│   ├── GameRoom.kt                   # Modelo de sala de juego
-│   └── WebSocketMessage.kt           # Mensajes WebSocket
-├── websocket/                        # Servidor WebSocket
-│   └── SimpleWebSocketServer.kt      # Implementación del servidor
-├── viewmodel/                        # ViewModels
-│   └── GameViewModel.kt              # Lógica de la aplicación
-├── ui/                               # Componentes de UI
-│   ├── components/                   # Componentes reutilizables
-│   │   ├── RoomCodeDisplay.kt        # Display del código de sala
-│   │   └── PlayersList.kt            # Lista de jugadores
-│   └── screens/                      # Pantallas
-│       └── GameLobbyScreen.kt        # Pantalla principal del lobby
-└── client/                           # Ejemplo de cliente móvil
-    └── MobileClientExample.kt        # Código de ejemplo para móviles
-```
+### ✅ Pantalla de Conexión
 
-## Cómo Funciona
+- Input para código de sala (4 caracteres)
+- Campo para nombre del jugador
+- Configuración de URL del servidor
+- Manejo de estados de conexión (Desconectado, Conectando, Conectado, Error)
+- Cliente WebSocket integrado
 
-### 1. Inicio de la Aplicación
-- La app genera automáticamente un código de sala único de 4 dígitos
-- Inicia un servidor WebSocket local en el puerto 8080
-- Muestra el código en pantalla para que los jugadores lo vean
+### ✅ Selección de Avatar
 
-### 2. Conexión de Jugadores
-- Los jugadores móviles ingresan el código de sala
-- El servidor valida el código
-- Si es correcto, el jugador se une a la sala
-- La lista de jugadores se actualiza en tiempo real
+- Grid de avatares disponibles (16 opciones)
+- Avatares con emojis de vehículos (🏎️, 🏍️, 🚲)
+- Diferentes colores para cada tipo de vehículo
+- Confirmación de selección
+- Envío de selección al servidor TV
 
-### 3. Comunicación WebSocket
-- Los mensajes se envían en formato JSON
-- Tipos de mensajes soportados:
-  - `JoinRoom`: Solicitud de unión a sala
-  - `PlayerJoined`: Confirmación de jugador unido
-  - `PlayerLeft`: Notificación de jugador desconectado
-  - `RoomInfo`: Información actualizada de la sala
-  - `Error`: Mensajes de error
-  - `Success`: Confirmaciones exitosas
+### ✅ Pantalla de Juego
 
-## Instalación y Uso
+- Botón de tap animado para controlar el avatar
+- Contador de taps del jugador
+- Información del estado del juego
+- Lista de jugadores conectados
+- Pantalla de espera cuando el juego no ha iniciado
 
-### Requisitos
-- Android TV o dispositivo Android con soporte para TV
-- Android API 30+ (Android 11+)
-- Dispositivos móviles en la misma red WiFi
+## Protocolo de Comunicación WebSocket
 
-### Compilación
-```bash
-# Clonar el repositorio
-git clone <repository-url>
-cd mobileTvRunAvatars
+### Cliente → Servidor
 
-# Compilar y instalar
-./gradlew assembleDebug
-adb install app/build/outputs/apk/debug/app-debug.apk
+```json
+{
+  "type": "JOIN_ROOM",
+  "data": {"code": "1234", "playerName": "Player1"}
+}
+
+{
+  "type": "SELECT_AVATAR",
+  "data": {"avatarId": "car_red"}
+}
+
+{
+  "type": "TAP",
+  "data": {"timestamp": 1642012345678}
+}
 ```
 
-### Uso en Android TV
-1. Instalar la aplicación en el dispositivo Android TV
-2. Abrir la aplicación
-3. Anotar el código de sala que aparece en pantalla
-4. Esperar a que los jugadores se conecten
+### Servidor → Cliente
 
-### Conexión desde Dispositivos Móviles
-Los jugadores pueden usar el código de ejemplo en `MobileClientExample.kt`:
+```json
+{
+  "type": "ROOM_JOINED",
+  "data": {"playerId": "abc123", "roomCode": "1234"}
+}
 
-```kotlin
-val client = MobileClientExample()
-client.connectToServer(
-    serverUrl = "ws://IP_DE_LA_TV:8080",
-    roomCode = "1234", // Código mostrado en la TV
-    playerName = "MiNombre",
-    onMessageReceived = { message ->
-        // Procesar mensajes recibidos
-    },
-    onConnectionStatus = { status ->
-        // Actualizar UI con estado de conexión
-    }
-)
+{
+  "type": "AVATAR_SELECTED",
+  "data": {"playerId": "abc123", "avatarId": "car_red"}
+}
+
+{
+  "type": "GAME_START",
+  "data": {
+    "players": [
+      {"playerId": "abc123", "playerName": "Player1", "avatarId": "car_red"}
+    ]
+  }
+}
 ```
 
-## Configuración de Red
+## Avatares Disponibles
 
-### Obtener IP de la Android TV
-```bash
-# En la Android TV, ejecutar:
-adb shell ip addr show wlan0
+### Coches (🏎️)
+
+- Coche Rojo (`car_red`)
+- Coche Azul (`car_blue`)
+- Coche Verde (`car_green`)
+- Coche Amarillo (`car_yellow`)
+- Coche Púrpura (`car_purple`)
+- Coche Naranja (`car_orange`)
+- Coche Rosa (`car_pink`)
+- Coche Cian (`car_cyan`)
+
+### Motos (🏍️)
+
+- Moto Roja (`motorcycle_red`)
+- Moto Azul (`motorcycle_blue`)
+- Moto Verde (`motorcycle_green`)
+- Moto Amarilla (`motorcycle_yellow`)
+
+### Bicicletas (🚲)
+
+- Bici Roja (`bike_red`)
+- Bici Azul (`bike_blue`)
+- Bici Verde (`bike_green`)
+- Bici Amarilla (`bike_yellow`)
+
+## Configuración
+
+### URL del Servidor
+
+Por defecto: `ws://192.168.1.100:8080`
+
+Puedes cambiar esta URL en la pantalla de conexión o modificar `GameConfig.DEFAULT_SERVER_URL`.
+
+### Permisos Requeridos
+
+- `INTERNET`: Para conexión WebSocket
+- `ACCESS_NETWORK_STATE`: Para verificar estado de red
+
+## Arquitectura
+
+### Estructura de Paquetes
+
+```
+appmobile/
+├── data/
+│   ├── WebSocketMessage.kt      # Modelos de mensajes WebSocket
+│   └── Avatar.kt                # Modelo de avatar y repositorio
+├── network/
+│   └── WebSocketService.kt      # Servicio WebSocket
+├── ui/
+│   ├── screens/
+│   │   ├── ConnectionScreen.kt  # Pantalla de conexión
+│   │   ├── AvatarSelectionScreen.kt # Selección de avatar
+│   │   └── GameScreen.kt        # Pantalla de juego
+│   └── viewmodel/
+│       └── MainViewModel.kt     # ViewModel principal
+├── config/
+│   └── GameConfig.kt            # Configuración del juego
+└── MainActivity.kt              # Actividad principal
 ```
 
-### Configurar Firewall
-Asegúrate de que el puerto 8080 esté abierto en la red local.
+### Tecnologías Utilizadas
+
+- **Jetpack Compose**: UI moderna declarativa
+- **ViewModel**: Gestión de estado y lógica de negocio
+- **StateFlow**: Flujos reactivos para datos
+- **OkHttp WebSocket**: Cliente WebSocket
+- **Kotlinx Serialization**: Serialización JSON
+- **Coroutines**: Programación asíncrona
+
+## Flujo de Uso
+
+1. **Conexión**: El usuario ingresa el código de sala y su nombre
+2. **Selección de Avatar**: Elige un vehículo de la grilla disponible
+3. **Juego**: Toca el botón para acelerar su vehículo en la carrera
+4. **Resultados**: Ve el progreso en tiempo real
 
 ## Desarrollo
 
-### Agregar Nuevas Funcionalidades
-La estructura modular permite fácil extensión:
+### Requisitos
 
-1. **Nuevos tipos de mensajes**: Agregar en `WebSocketMessage.kt`
-2. **Nuevas pantallas**: Crear en `ui/screens/`
-3. **Lógica de juego**: Extender `GameViewModel.kt`
-4. **Componentes UI**: Agregar en `ui/components/`
+- Android Studio Hedgehog o superior
+- Android SDK 31+ (API 31)
+- Kotlin 2.0.21+
 
-### Próximas Fases
-- Fase 2: Implementación del juego de carreras
-- Fase 3: Avatares personalizables
-- Fase 4: Múltiples modos de juego
+### Compilación
 
-## Dependencias Principales
+```bash
+./gradlew assembleDebug
+```
 
-- **OkHttp**: Cliente HTTP y WebSocket
-- **Gson**: Serialización JSON
-- **Coroutines**: Programación asíncrona
-- **Jetpack Compose**: UI declarativa
-- **Android TV Compose**: Componentes específicos para TV
+### Instalación
 
-## Troubleshooting
+```bash
+./gradlew installDebug
+```
 
-### Problemas Comunes
+## Próximos Pasos
 
-1. **No se pueden conectar los móviles**
-   - Verificar que estén en la misma red WiFi
-   - Comprobar que el puerto 8080 esté abierto
-   - Usar la IP correcta de la Android TV
-
-2. **La app no inicia**
-   - Verificar permisos de red en AndroidManifest.xml
-   - Comprobar que el dispositivo soporte Android TV
-
-3. **Errores de WebSocket**
-   - Revisar logs en Logcat
-   - Verificar que el servidor esté iniciado correctamente
-
-## Licencia
-
-Este proyecto está bajo la licencia MIT. Ver el archivo LICENSE para más detalles.
+- [ ] Implementar persistencia local de configuración
+- [ ] Agregar efectos de sonido
+- [ ] Implementar reconexión automática
+- [ ] Agregar animaciones de transición entre pantallas
+- [ ] Implementar modo offline para pruebas
+- [ ] Agregar configuración de calidad gráfica
