@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.carreraavatar"
+    namespace = "com.angelyjesus.carreraavatar"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.carreraavatar"
+        applicationId = "com.angelyjesus.carreraavatar"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -49,8 +49,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     
-    // WebSocket y Networking - OkHttp incluye WebSocket por defecto
+    // WebSocket y Networking
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.java-websocket:Java-WebSocket:1.5.3")
     
     // JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")

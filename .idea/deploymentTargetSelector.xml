@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-08-20T20:22:19.679615051Z">
+        <DropdownSelection timestamp="2025-08-20T22:59:16.698825846Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/home/angel/.android/avd/Television_1080p.avd" />
@@ -15,7 +15,7 @@
       </SelectionState>
       <SelectionState runConfigName="appcarreraavatar">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-08-20T20:21:30.737045685Z">
+        <DropdownSelection timestamp="2025-08-20T23:07:37.431196279Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/home/angel/.android/avd/Pixel_9.avd" />

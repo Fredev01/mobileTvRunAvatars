@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.appmobile"
+    namespace = "com.angelyjesus.carreraavatar"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.appmobile"
+        applicationId = "com.angelyjesus.carreraavatar"
         minSdk = 31
         targetSdk = 35
         versionCode = 1
