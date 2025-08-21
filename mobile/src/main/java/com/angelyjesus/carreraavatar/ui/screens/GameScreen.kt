@@ -33,7 +33,8 @@ fun GameScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(top = 48.dp), // Margen superior para evitar la cámara frontal
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Header del juego
@@ -41,7 +42,7 @@ fun GameScreen(
             text = "¡Carrera en Progreso!",
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 24.dp)
+            modifier = Modifier.padding(bottom = 32.dp) // Aumentar espaciado
         )
 
         // Botón de tap principal
@@ -52,7 +53,7 @@ fun GameScreen(
             }
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp)) // Aumentar espaciado
 
         // Contador de taps
         Text(
@@ -61,12 +62,12 @@ fun GameScreen(
             color = MaterialTheme.colorScheme.primary
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(32.dp)) // Aumentar espaciado
 
         // Información del jugador
         PlayerInfoCard(playerData = playerData)
         
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp)) // Aumentar espaciado
         
         // Información del juego
         gameState?.let { state ->
@@ -220,7 +221,8 @@ fun WaitingForGameScreen() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(top = 48.dp), // Margen superior para evitar la cámara frontal
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
