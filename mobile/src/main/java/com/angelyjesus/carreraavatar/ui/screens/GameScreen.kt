@@ -39,7 +39,13 @@ fun GameScreen(
     ) {
         // Header del juego
         Text(
-            text = "¡Carrera en Progreso!",
+            text = when (gameState?.currentState) {
+                "WAITING" -> "Esperando jugadores..."
+                "COUNTDOWN" -> "¡Preparados! ${gameState.countdown}"
+                "RACING" -> "¡Carrera en Progreso!"
+                "FINISHED" -> "¡Carrera Terminada!"
+                else -> "¡Carrera en Progreso!"
+            },
             style = MaterialTheme.typography.headlineMedium,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(bottom = 32.dp) // Aumentar espaciado
@@ -47,6 +53,7 @@ fun GameScreen(
 
         // Botón de tap principal
         TapButton(
+            enabled = gameState?.currentState == "RACING",
             onTap = {
                 tapCount++
                 viewModel.sendTap()
@@ -77,11 +84,11 @@ fun GameScreen(
 }
 
 @Composable
-fun TapButton(onTap: () -> Unit) {
+fun TapButton(enabled: Boolean = true, onTap: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "tap_animation")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.1f,
+        targetValue = if (enabled) 1.1f else 1f,
         animationSpec = infiniteRepeatable(
             animation = tween(1000),
             repeatMode = RepeatMode.Reverse
@@ -90,17 +97,18 @@ fun TapButton(onTap: () -> Unit) {
     )
 
     Button(
-        onClick = onTap,
+        onClick = if (enabled) onTap else { {} },
+        enabled = enabled,
         modifier = Modifier
             .size(120.dp)
             .scale(scale),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
         )
     ) {
         Text(
-            text = "TAP!",
+            text = if (enabled) "TAP!" else "ESPERA",
             style = MaterialTheme.typography.headlineSmall
         )
     }
@@ -166,22 +174,51 @@ fun GameInfoCard(gameState: GameState, tapCount: Int) {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            if (gameState.isGameActive) {
+            // Estado actual del juego
+            Text(
+                text = when (gameState.currentState) {
+                    "WAITING" -> "⏳ Esperando jugadores..."
+                    "COUNTDOWN" -> "🚦 ¡Preparados! ${gameState.countdown}"
+                    "RACING" -> "🏁 ¡Carrera en progreso!"
+                    "FINISHED" -> "🏆 ¡Carrera terminada!"
+                    else -> "Esperando inicio de la carrera..."
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = when (gameState.currentState) {
+                    "RACING" -> MaterialTheme.colorScheme.primary
+                    "FINISHED" -> MaterialTheme.colorScheme.tertiary
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Jugadores: ${gameState.players.size}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            
+            // Mostrar ganador si el juego terminó
+            if (gameState.currentState == "FINISHED" && gameState.winner != null) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "¡Carrera en progreso!",
+                    text = "🏆 Ganador: ${gameState.winner.name}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.tertiary,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
                 )
-                
-                Text(
-                    text = "Jugadores: ${gameState.players.size}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                
-                // Lista de jugadores
-                gameState.players.forEach { player ->
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Lista de jugadores con progreso
+            gameState.players.forEach { player ->
+                Row(
+                    modifier = Modifier.padding(vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Row(
-                        modifier = Modifier.padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val avatar = player.avatarId?.let { AvatarRepository.getAvatarById(it) }
@@ -197,12 +234,16 @@ fun GameInfoCard(gameState: GameState, tapCount: Int) {
                             style = MaterialTheme.typography.bodySmall
                         )
                     }
+                    
+                    // Mostrar progreso si está disponible
+                    player.progress?.let { progress ->
+                        Text(
+                            text = "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-            } else {
-                Text(
-                    text = "Esperando inicio de la carrera...",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
             
             Spacer(modifier = Modifier.height(8.dp))

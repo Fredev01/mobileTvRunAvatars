@@ -34,6 +34,7 @@ class GameEngine {
     var onGameStateChanged: ((String) -> Unit)? = null
     var onPlayerProgressUpdated: ((String, Float) -> Unit)? = null
     var onGameFinished: ((Player) -> Unit)? = null
+    var onCountdownChanged: ((Int) -> Unit)? = null
     
     /**
      * Inicia el juego con la cuenta regresiva
@@ -65,11 +66,13 @@ class GameEngine {
             // Cuenta regresiva: 3, 2, 1, ¡GO!
             for (i in 3 downTo 1) {
                 _countdown.value = i
+                onCountdownChanged?.invoke(i)
                 delay(1000)
             }
             
             // ¡GO!
             _countdown.value = 0
+            onCountdownChanged?.invoke(0)
             delay(500)
             
             // Iniciar carrera

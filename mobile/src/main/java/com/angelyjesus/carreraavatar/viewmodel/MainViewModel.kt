@@ -28,7 +28,10 @@ data class PlayerData(
 data class GameState(
     val players: List<Player>,
     val isGameActive: Boolean,
-    val tapCount: Int = 0
+    val tapCount: Int = 0,
+    val currentState: String = "WAITING", // Estados: WAITING, COUNTDOWN, RACING, FINISHED
+    val winner: Player? = null,
+    val countdown: Int = 3
 )
 
 class MainViewModel : ViewModel() {
@@ -113,7 +116,10 @@ class MainViewModel : ViewModel() {
                     _gameState.value = GameState(
                         players = updatedRoom.players.values.toList(),
                         isGameActive = updatedRoom.gameState.isActive,
-                        tapCount = playerTapCount
+                        tapCount = playerTapCount,
+                        currentState = updatedRoom.gameState.currentState,
+                        winner = updatedRoom.gameState.winner,
+                        countdown = updatedRoom.gameState.countdown
                     )
                     
                     Log.d("MainViewModel", "Sala actualizada: ${updatedRoom.players.size} jugadores")
