@@ -4,21 +4,21 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-08-21T04:12:26.649934900Z">
+        <DropdownSelection timestamp="2025-08-21T15:58:32.753384808Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\jesus\.android\avd\Television_720p.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/angel/.android/avd/Television_1080p.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="mobile">
+      <SelectionState runConfigName="appcarreraavatar">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-08-21T03:30:43.913683900Z">
+        <DropdownSelection timestamp="2025-08-21T15:49:29.874904772Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=PJAM8LIZPV4PFQZ9" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/home/angel/.android/avd/Pixel_9.avd" />
             </handle>
           </Target>
         </DropdownSelection>

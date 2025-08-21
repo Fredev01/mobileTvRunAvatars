@@ -112,6 +112,23 @@ class FirebaseGameService {
     }
     
     /**
+     * Actualizar el progreso de un jugador específico
+     */
+    fun updatePlayerProgress(roomCode: String, playerId: String, progress: Float, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val playerRef = roomsRef.child(roomCode).child("players").child(playerId).child("progress")
+        
+        playerRef.setValue(progress)
+            .addOnSuccessListener {
+                Log.d("FirebaseGameService", "Progreso actualizado para jugador $playerId: ${(progress * 100).toInt()}%")
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FirebaseGameService", "Error actualizando progreso: ${exception.message}")
+                onError(exception.message ?: "Error desconocido")
+            }
+    }
+    
+    /**
      * Eliminar una sala cuando el juego termine
      */
     fun deleteRoom(roomCode: String, onSuccess: () -> Unit, onError: (String) -> Unit) {

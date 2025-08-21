@@ -66,6 +66,9 @@ class GameViewModel : ViewModel() {
                 val updatedPlayer = player.copy(progress = newProgress)
                 currentPlayers[index] = updatedPlayer
                 _players.value = currentPlayers
+                
+                // Sincronizar progreso con Firebase
+                updatePlayerProgressInFirebase(playerId, newProgress)
             }
         }
     }
@@ -93,15 +96,7 @@ class GameViewModel : ViewModel() {
             roomCode = _roomCode.value,
             onSuccess = {
                 Log.d("GameViewModel", "Sala creada en Firebase: ${_roomCode.value}")
-                // Crear jugador host
-                val hostPlayer = Player(
-                    id = "host_player",
-                    name = "Host",
-                    avatarId = "car_blue"
-                )
-                addHostPlayer(hostPlayer)
-                
-                // Escuchar cambios en la sala
+                // Escuchar cambios en la sala (sin crear jugador host)
                 listenToRoomChanges()
             },
             onError = { error ->
@@ -111,19 +106,6 @@ class GameViewModel : ViewModel() {
         )
     }
     
-    private fun addHostPlayer(hostPlayer: Player) {
-        firebaseService.addPlayerToRoom(
-            roomCode = _roomCode.value,
-            player = hostPlayer,
-            onSuccess = {
-                _players.value = listOf(hostPlayer)
-                // No necesitamos modificar gameRoom.players ya que Firebase lo maneja
-            },
-            onError = { error ->
-                Log.e("GameViewModel", "Error agregando jugador host: $error")
-            }
-        )
-    }
     
     private fun listenToRoomChanges() {
         viewModelScope.launch {
@@ -132,10 +114,56 @@ class GameViewModel : ViewModel() {
                     // Convertir Map a List para la UI
                     _players.value = updatedRoom.players.values.toList()
                     gameRoom = updatedRoom
+                    
+                    // Procesar TAPs recibidos de móviles
+                    processIncomingTaps(updatedRoom)
+                    
                     Log.d("GameViewModel", "Sala actualizada: ${updatedRoom.players.size} jugadores")
                 }
             }
         }
+    }
+    
+    /**
+     * Procesa los TAPs recibidos desde Firebase (de móviles)
+     */
+    private fun processIncomingTaps(room: GameRoom) {
+        if (_gameState.value != "RACING") return
+        
+        // Procesar taps para cada jugador
+        room.gameState.taps.forEach { (playerId, tapsData) ->
+            when (tapsData) {
+                is Map<*, *> -> {
+                    // Contar nuevos taps y actualizar progreso
+                    val tapCount = tapsData.size
+                    val player = _players.value.find { it.id == playerId }
+                    if (player != null) {
+                        // Calcular nuevo progreso basado en taps
+                        val newProgress = (tapCount * 0.01f).coerceAtMost(1.0f)
+                        if (newProgress != (player.progress ?: 0f)) {
+                            gameEngine.processPlayerTap(playerId, _players.value)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Actualiza el progreso de un jugador en Firebase
+     */
+    private fun updatePlayerProgressInFirebase(playerId: String, newProgress: Float) {
+        firebaseService.updatePlayerProgress(
+            roomCode = _roomCode.value,
+            playerId = playerId,
+            progress = newProgress,
+            onSuccess = {
+                Log.d("GameViewModel", "Progreso actualizado en Firebase para $playerId: ${(newProgress * 100).toInt()}%")
+            },
+            onError = { error ->
+                Log.e("GameViewModel", "Error actualizando progreso: $error")
+            }
+        )
     }
     
     /**
