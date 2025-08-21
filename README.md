@@ -82,6 +82,8 @@ Este es el cliente móvil Android que permite a los jugadores conectarse a una s
 }
 ```
 
+**Nota**: Internamente, el cliente móvil usa `messageType` en lugar de `type` para evitar conflictos con Kotlinx Serialization.
+
 ## Avatares Disponibles
 
 ### Coches (🏎️)
