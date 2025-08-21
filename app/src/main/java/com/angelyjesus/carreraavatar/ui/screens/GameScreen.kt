@@ -179,20 +179,23 @@ private fun PlayerAvatarAndName(
     Box(modifier = modifier) {
         // Calcular posición del jugador en la pista
         val laneOffset = (index * 25) + 80  // Posición Y del carril
-        val progressOffset = 50 + (progress * 250).coerceAtMost(250f)  // Posición X basada en progreso
+        // Cálculo dinámico basado en el ancho de la pista
+        val trackWidth = 300f // Ancho disponible para la carrera
+        val startX = 50f
+        val progressOffset = startX + (progress * trackWidth)  // Posición X dinámica sin hardcodeo
         
-        // Avatar de Pikachu
+        // Avatar de Pokémon desde Firebase
         AsyncImage(
-            model = player.avatarId ?: "https://pokeapi.co/api/v2/pokemon/25/", // URL por defecto de Pikachu
+            model = player.avatarImageUrl ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png", // Pikachu por defecto
             contentDescription = "Avatar de ${player.name}",
             modifier = Modifier
-                .size(40.dp)
+                .size(64.dp) // Tamaño duplicado para mejor visibilidad
                 .offset(
                     x = progressOffset.dp,
                     y = laneOffset.dp
                 )
                 .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
+            contentScale = ContentScale.Fit // Mejor para imágenes de Pokémon
         )
         
         // Nombre del jugador
@@ -345,19 +348,34 @@ private fun GameInfo(
     ) {
         when (gameState) {
             "RACING" -> {
-                // Mostrar progreso de la carrera
+                // Mostrar progreso de la carrera con avatares
                 players.forEach { player ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = player.name,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Color.White
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Avatar pequeño en la lista de progreso
+                            AsyncImage(
+                                model = player.avatarImageUrl ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+                                contentDescription = "Avatar de ${player.name}",
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(RoundedCornerShape(4.dp)),
+                                contentScale = ContentScale.Fit
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = player.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Color.White
+                            )
+                        }
                         Text(
                             text = "${((player.progress ?: 0f) * 100).toInt()}%",
                             style = MaterialTheme.typography.bodyLarge,
@@ -379,7 +397,7 @@ private fun GameInfo(
                     )
                 }
                 
-                // Ranking de jugadores
+                // Ranking de jugadores con avatares
                 players.sortedByDescending { it.progress ?: 0f }.forEachIndexed { index, player ->
                     val position = index + 1
                     val emoji = when (position) {
@@ -389,12 +407,26 @@ private fun GameInfo(
                         else -> "🏅"
                     }
                     
-                    Text(
-                        text = "$emoji $position. ${player.name} - ${((player.progress ?: 0f) * 100).toInt()}%",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
+                    Row(
+                        modifier = Modifier.padding(vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Avatar en el ranking
+                        AsyncImage(
+                            model = player.avatarImageUrl ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
+                            contentDescription = "Avatar de ${player.name}",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "$emoji $position. ${player.name} - ${((player.progress ?: 0f) * 100).toInt()}%",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
