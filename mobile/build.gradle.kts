@@ -55,6 +55,8 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-analytics-ktx")
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
     
     implementation(libs.androidx.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)

@@ -100,12 +100,17 @@ class FirebaseGameClient {
     /**
      * Seleccionar avatar para un jugador
      */
-    fun selectAvatar(roomCode: String, playerId: String, avatarId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
-        val playerRef = roomsRef.child(roomCode).child("players").child(playerId).child("avatarId")
+    fun selectAvatar(roomCode: String, playerId: String, avatarId: String, avatarImageUrl: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val playerRef = roomsRef.child(roomCode).child("players").child(playerId)
         
-        playerRef.setValue(avatarId)
+        val updates = mapOf(
+            "avatarId" to avatarId,
+            "avatarImageUrl" to avatarImageUrl
+        )
+        
+        playerRef.updateChildren(updates)
             .addOnSuccessListener {
-                Log.d("FirebaseGameClient", "Avatar seleccionado: $avatarId para jugador $playerId")
+                Log.d("FirebaseGameClient", "Avatar seleccionado: $avatarId con URL: $avatarImageUrl para jugador $playerId")
                 onSuccess()
             }
             .addOnFailureListener { exception ->
