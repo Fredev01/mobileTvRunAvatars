@@ -22,18 +22,11 @@ fun AvatarSelectionScreen(
     var selectedAvatar by remember { mutableStateOf<Avatar?>(null) }
     val playerData by viewModel.playerData.collectAsState()
 
-    LaunchedEffect(selectedAvatar) {
-        if (selectedAvatar != null) {
-            selectedAvatar?.let { avatar ->
-                viewModel.selectAvatar(avatar.id)
-            }
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .padding(top = 48.dp), // Margen superior para evitar la cámara frontal
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
@@ -55,7 +48,7 @@ fun AvatarSelectionScreen(
 
         // Grid de avatares
         LazyVerticalGrid(
-            columns = GridCells.Fixed(3),
+            columns = GridCells.Fixed(2), // Cambiar a 2 columnas para mejor visualización
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.weight(1f)
@@ -70,6 +63,25 @@ fun AvatarSelectionScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+
+        // Mensaje informativo
+        if (selectedAvatar == null) {
+            Text(
+                text = "Toca un avatar para seleccionarlo",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        } else {
+            Text(
+                text = "Avatar seleccionado: ${selectedAvatar?.name}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+        }
 
         // Botón de confirmación
         Button(
@@ -94,7 +106,7 @@ fun AvatarCard(
 ) {
     Card(
         modifier = Modifier
-            .size(100.dp)
+            .size(120.dp)
             .padding(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
@@ -105,7 +117,14 @@ fun AvatarCard(
         ),
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isSelected) 8.dp else 2.dp
-        )
+        ),
+        onClick = onClick, // Hacer la tarjeta clickeable
+        border = if (isSelected) {
+            androidx.compose.foundation.BorderStroke(
+                width = 3.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else null
     ) {
         Box(
             modifier = Modifier
@@ -113,10 +132,21 @@ fun AvatarCard(
                 .padding(8.dp),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = avatar.emoji,
-                style = MaterialTheme.typography.displaySmall
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = avatar.emoji,
+                    style = MaterialTheme.typography.displayMedium
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = avatar.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    maxLines = 2
+                )
+            }
         }
     }
 } 
