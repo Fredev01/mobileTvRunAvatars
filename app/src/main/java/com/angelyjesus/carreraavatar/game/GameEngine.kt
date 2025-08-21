@@ -24,7 +24,7 @@ class GameEngine {
     
     // Configuración del juego
     private val raceDuration = 30000L // 30 segundos
-    private val tapMultiplier = 0.01f // Cada tap avanza 1% de la pista
+    private val tapMultiplier = 0.02f // Cada tap avanza 2% de la pista (50 taps para ganar)
     private val maxProgress = 1.0f // 100% de la pista
     
     private var gameJob: Job? = null
@@ -35,6 +35,7 @@ class GameEngine {
     var onPlayerProgressUpdated: ((String, Float) -> Unit)? = null
     var onGameFinished: ((Player) -> Unit)? = null
     var onCountdownChanged: ((Int) -> Unit)? = null
+    var onGameTimeout: (() -> Unit)? = null
     
     /**
      * Inicia el juego con la cuenta regresiva
@@ -89,41 +90,27 @@ class GameEngine {
         
         Log.d("GameEngine", "¡Carrera iniciada!")
         
-        // Bucle principal del juego
+        // Bucle principal del juego - REMOVIDO para evitar race conditions
+        // La verificación de ganador ahora solo ocurre en processPlayerTap()
         val startTime = System.currentTimeMillis()
         
-        while (System.currentTimeMillis() - startTime < raceDuration) {
-            // Verificar si hay un ganador
-            val winner = players.find { (it.progress ?: 0f) >= maxProgress }
-            if (winner != null) {
-                finishGame(winner)
-                return
-            }
-            
-            // Verificar si se acabó el tiempo
-            if (System.currentTimeMillis() - startTime >= raceDuration) {
-                // Ganador por tiempo (el que esté más adelante)
-                val timeWinner = players.maxByOrNull { it.progress ?: 0f }
-                if (timeWinner != null) {
-                    finishGame(timeWinner)
-                    return
-                }
-            }
-            
-            delay(16) // ~60 FPS
+        while (System.currentTimeMillis() - startTime < raceDuration && _gameState.value == "RACING") {
+            // Solo mantener el juego activo, sin verificar ganadores aquí
+            // La verificación se hace en processPlayerTap() con datos actualizados
+            delay(100) // Reducir frecuencia para evitar overhead
         }
         
-        // Si llegamos aquí, el juego terminó por tiempo
-        val timeWinner = players.maxByOrNull { it.progress ?: 0f }
-        if (timeWinner != null) {
-            finishGame(timeWinner)
+        // Si llegamos aquí y el juego sigue activo, terminó por tiempo
+        if (_gameState.value == "RACING") {
+            Log.d("GameEngine", "Juego terminado por tiempo")
+            onGameTimeout?.invoke()
         }
     }
     
     /**
      * Finaliza el juego y declara al ganador
      */
-    private fun finishGame(winner: Player) {
+    fun finishGame(winner: Player) {
         _gameState.value = "FINISHED"
         _winner.value = winner
         

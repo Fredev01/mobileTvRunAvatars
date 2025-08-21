@@ -38,6 +38,9 @@ class GameViewModel : ViewModel() {
     private val _winner = MutableStateFlow<Player?>(null)
     val winner: StateFlow<Player?> = _winner.asStateFlow()
     
+    // Contador de TAPs procesados por jugador para evitar duplicados
+    private val processedTapsPerPlayer = mutableMapOf<String, Int>()
+    
     // Callback para cambios de estado del juego
     var onGameStateChanged: ((String) -> Unit)? = null
     
@@ -61,6 +64,11 @@ class GameViewModel : ViewModel() {
             syncDetailedGameStateToFirebase("FINISHED", winnerPlayer)
         }
         
+        // Manejar timeout del juego
+        gameEngine.onGameTimeout = { ->
+            handleGameTimeout()
+        }
+        
         gameEngine.onCountdownChanged = { countdown ->
             // Sincronizar countdown en tiempo real
             syncDetailedGameStateToFirebase("COUNTDOWN", null, countdown)
@@ -76,9 +84,27 @@ class GameViewModel : ViewModel() {
                 currentPlayers[index] = updatedPlayer
                 _players.value = currentPlayers
                 
+                // Verificar si este jugador ganó (ahora con datos actualizados)
+                if (newProgress >= 1.0f) {
+                    gameEngine.finishGame(updatedPlayer)
+                }
+                
                 // Sincronizar progreso con Firebase
                 updatePlayerProgressInFirebase(playerId, newProgress)
             }
+        }
+    }
+    
+    /**
+     * Maneja el timeout del juego cuando se acaba el tiempo
+     */
+    private fun handleGameTimeout() {
+        // Encontrar el jugador con más progreso
+        val winner = _players.value.maxByOrNull { it.progress ?: 0f }
+        if (winner != null) {
+            _winner.value = winner
+            syncDetailedGameStateToFirebase("FINISHED", winner)
+            Log.d("GameViewModel", "Juego terminado por tiempo. Ganador: ${winner.name}")
         }
     }
     
@@ -143,14 +169,22 @@ class GameViewModel : ViewModel() {
         room.gameState.taps.forEach { (playerId, tapsData) ->
             when (tapsData) {
                 is Map<*, *> -> {
-                    // Contar nuevos taps y actualizar progreso
-                    val tapCount = tapsData.size
+                    // Contar taps desde Firebase
+                    val firebaseTapCount = tapsData.size
                     val player = _players.value.find { it.id == playerId }
                     if (player != null) {
-                        // Calcular nuevo progreso basado en taps
-                        val newProgress = (tapCount * 0.01f).coerceAtMost(1.0f)
-                        if (newProgress != (player.progress ?: 0f)) {
+                        // Obtener cuántos taps ya hemos procesado para este jugador
+                        val alreadyProcessed = processedTapsPerPlayer[playerId] ?: 0
+                        val newTaps = firebaseTapCount - alreadyProcessed
+                        
+                        Log.d("GameViewModel", "Player $playerId: Firebase taps=$firebaseTapCount, already processed=$alreadyProcessed, new taps=$newTaps, current progress=${((player.progress ?: 0f)*100).toInt()}%")
+                        
+                        // Solo procesar si hay nuevos taps
+                        if (newTaps > 0) {
+                            // Procesar solo 1 tap por vez para mantener sincronización
                             gameEngine.processPlayerTap(playerId, _players.value)
+                            // Actualizar contador de taps procesados
+                            processedTapsPerPlayer[playerId] = alreadyProcessed + 1
                         }
                     }
                 }
@@ -180,6 +214,8 @@ class GameViewModel : ViewModel() {
      */
     fun startGame() {
         if (_players.value.isNotEmpty()) {
+            // Limpiar contadores de taps procesados al iniciar nuevo juego
+            processedTapsPerPlayer.clear()
             Log.d("GameViewModel", "Iniciando juego...")
             gameEngine.startGame(_players.value)
         }
@@ -198,6 +234,8 @@ class GameViewModel : ViewModel() {
     fun returnToLobby() {
         gameEngine.stopGame()
         _winner.value = null
+        // Limpiar contadores de taps al volver al lobby
+        processedTapsPerPlayer.clear()
         Log.d("GameViewModel", "Volviendo al lobby")
     }
     
