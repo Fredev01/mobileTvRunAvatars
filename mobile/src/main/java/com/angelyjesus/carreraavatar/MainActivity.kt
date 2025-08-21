@@ -16,8 +16,7 @@ import com.angelyjesus.carreraavatar.ui.screens.AvatarSelectionScreen
 import com.angelyjesus.carreraavatar.ui.screens.ConnectionScreen
 import com.angelyjesus.carreraavatar.ui.screens.GameScreen
 import com.angelyjesus.carreraavatar.ui.theme.CarreraAvatarTheme
-import com.angelyjesus.carreraavatar.ui.viewmodel.AppScreen
-import com.angelyjesus.carreraavatar.ui.viewmodel.MainViewModel
+import com.angelyjesus.carreraavatar.viewmodel.MainViewModel
 
 class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
@@ -46,24 +45,23 @@ fun CarreraAvatarApp(
     val currentScreen by viewModel.currentScreen.collectAsState()
     val playerData by viewModel.playerData.collectAsState()
     val gameState by viewModel.gameState.collectAsState()
-    val webSocketService = viewModel.getWebSocketService()
 
     when (currentScreen) {
-        is AppScreen.Connection -> {
+        is MainViewModel.Screen.CONNECTION -> {
             ConnectionScreen(
-                webSocketService = webSocketService,
-                onConnectionSuccess = { viewModel.onConnectionSuccess() }
+                viewModel = viewModel,
+                onConnectionSuccess = { /* La navegación se maneja automáticamente */ }
             )
         }
-        is AppScreen.AvatarSelection -> {
+        is MainViewModel.Screen.AVATAR_SELECTION -> {
             AvatarSelectionScreen(
-                webSocketService = webSocketService,
-                onAvatarSelected = { viewModel.onAvatarSelected() }
+                viewModel = viewModel,
+                onAvatarSelected = { /* La navegación se maneja automáticamente */ }
             )
         }
-        is AppScreen.Game -> {
+        is MainViewModel.Screen.GAME -> {
             GameScreen(
-                webSocketService = webSocketService,
+                viewModel = viewModel,
                 playerData = playerData,
                 gameState = gameState
             )

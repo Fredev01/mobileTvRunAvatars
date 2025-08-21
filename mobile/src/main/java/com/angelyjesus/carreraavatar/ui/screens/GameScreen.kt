@@ -1,41 +1,34 @@
 package com.angelyjesus.carreraavatar.ui.screens
 
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.angelyjesus.carreraavatar.data.AvatarRepository
-import com.angelyjesus.carreraavatar.network.GameState
-import com.angelyjesus.carreraavatar.network.PlayerData
-import com.angelyjesus.carreraavatar.network.WebSocketService
+import com.angelyjesus.carreraavatar.model.Player
+import com.angelyjesus.carreraavatar.viewmodel.MainViewModel
+import com.angelyjesus.carreraavatar.viewmodel.GameState
+import com.angelyjesus.carreraavatar.viewmodel.PlayerData
 
 @Composable
 fun GameScreen(
-    webSocketService: WebSocketService,
+    viewModel: MainViewModel,
     playerData: PlayerData?,
     gameState: GameState?
 ) {
     var tapCount by remember { mutableStateOf(0) }
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "pulse"
-    )
+    
+    if (playerData == null) {
+        WaitingForGameScreen()
+        return
+    }
 
     Column(
         modifier = Modifier
@@ -43,94 +36,111 @@ fun GameScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header con información del jugador
-        PlayerInfoCard(playerData)
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Información del juego
-        GameInfoCard(gameState, tapCount)
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
+        // Header del juego
+        Text(
+            text = "¡Carrera en Progreso!",
+            style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(bottom = 24.dp)
+        )
+
         // Botón de tap principal
-        Box(
-            modifier = Modifier
-                .size(200.dp)
-                .scale(scale)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary)
-                .clickable {
-                    tapCount++
-                    webSocketService.sendTap()
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "TAP!",
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.onPrimary
-            )
-        }
-        
+        TapButton(
+            onTap = {
+                tapCount++
+                viewModel.sendTap()
+            }
+        )
+
         Spacer(modifier = Modifier.height(24.dp))
-        
+
         // Contador de taps
         Text(
-            text = "Taps: $tapCount",
-            style = MaterialTheme.typography.headlineMedium,
+            text = "Tus taps: $tapCount",
+            style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.primary
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Información del jugador
+        PlayerInfoCard(playerData = playerData)
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Instrucciones
+        // Información del juego
+        gameState?.let { state ->
+            GameInfoCard(gameState = state, tapCount = tapCount)
+        }
+    }
+}
+
+@Composable
+fun TapButton(onTap: () -> Unit) {
+    val infiniteTransition = rememberInfiniteTransition(label = "tap_animation")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 1f,
+        targetValue = 1.1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "scale"
+    )
+
+    Button(
+        onClick = onTap,
+        modifier = Modifier
+            .size(120.dp)
+            .scale(scale),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary
+        )
+    ) {
         Text(
-            text = "Toca el botón para acelerar tu vehículo en la carrera",
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = "TAP!",
+            style = MaterialTheme.typography.headlineSmall
         )
     }
 }
 
 @Composable
-fun PlayerInfoCard(playerData: PlayerData?) {
+fun PlayerInfoCard(playerData: PlayerData) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.primaryContainer
         )
     ) {
-        Row(
+        Column(
             modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar del jugador
-            playerData?.selectedAvatar?.let { avatarId ->
+            Text(
+                text = "Tu Información",
+                style = MaterialTheme.typography.titleMedium
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Nombre: ${playerData.playerName}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            
+            Text(
+                text = "Sala: ${playerData.roomCode}",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            
+            playerData.selectedAvatar?.let { avatarId ->
                 val avatar = AvatarRepository.getAvatarById(avatarId)
                 avatar?.let {
                     Text(
-                        text = it.emoji,
-                        fontSize = 32.sp,
-                        modifier = Modifier.padding(end = 12.dp)
+                        text = "Avatar: ${it.emoji}",
+                        style = MaterialTheme.typography.bodyMedium
                     )
-                }
-            }
-            
-            Column {
-                Text(
-                    text = "Tu Avatar",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                playerData?.selectedAvatar?.let { avatarId ->
-                    val avatar = AvatarRepository.getAvatarById(avatarId)
-                    avatar?.let {
-                        Text(
-                            text = it.name,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
                 }
             }
         }
@@ -138,7 +148,7 @@ fun PlayerInfoCard(playerData: PlayerData?) {
 }
 
 @Composable
-fun GameInfoCard(gameState: GameState?, tapCount: Int) {
+fun GameInfoCard(gameState: GameState, tapCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -155,7 +165,7 @@ fun GameInfoCard(gameState: GameState?, tapCount: Int) {
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            if (gameState?.isGameActive == true) {
+            if (gameState.isGameActive) {
                 Text(
                     text = "¡Carrera en progreso!",
                     style = MaterialTheme.typography.bodyMedium,
@@ -177,7 +187,7 @@ fun GameInfoCard(gameState: GameState?, tapCount: Int) {
                         avatar?.let {
                             Text(
                                 text = it.emoji,
-                                fontSize = 16.sp,
+                                style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(end = 8.dp)
                             )
                         }

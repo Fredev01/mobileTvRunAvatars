@@ -3,14 +3,15 @@ package com.angelyjesus.carreraavatar.viewmodel
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.angelyjesus.carreraavatar.firebase.FirebaseGameService
 import com.angelyjesus.carreraavatar.model.GameRoom
 import com.angelyjesus.carreraavatar.model.Player
-import com.angelyjesus.carreraavatar.websocket.SimpleWebSocketServer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.*
+import android.util.Log
 
 class GameViewModel : ViewModel() {
     
@@ -30,11 +31,11 @@ class GameViewModel : ViewModel() {
     val serverIp: StateFlow<String> = _serverIp.asStateFlow()
     
     private var gameRoom: GameRoom? = null
-    private var webSocketServer: SimpleWebSocketServer? = null
+    private val firebaseService = FirebaseGameService()
     
     fun initialize(context: Context) {
         generateRoomCode()
-        startServer(context)
+        startFirebaseServer(context)
     }
     
     private fun generateRoomCode() {
@@ -45,43 +46,58 @@ class GameViewModel : ViewModel() {
         gameRoom = GameRoom(code = code)
     }
     
-    private fun startServer(context: Context) {
-        webSocketServer = SimpleWebSocketServer(
-            context = context,
-            onPlayerJoined = { player ->
-                viewModelScope.launch {
-                    val currentPlayers = _players.value.toMutableList()
-                    currentPlayers.add(player)
-                    _players.value = currentPlayers
-                    
-                    // Actualizar la sala
-                    gameRoom?.players?.add(player)
-                }
+    private fun startFirebaseServer(context: Context) {
+        _isServerRunning.value = true
+        _serverUrl.value = "Firebase Realtime Database"
+        _serverIp.value = "Firebase Cloud"
+        
+        // Crear la sala en Firebase
+        firebaseService.createGameRoom(
+            roomCode = _roomCode.value,
+            onSuccess = {
+                Log.d("GameViewModel", "Sala creada en Firebase: ${_roomCode.value}")
+                // Crear jugador host
+                val hostPlayer = Player(
+                    id = "host_player",
+                    name = "Host",
+                    avatarId = "car_blue"
+                )
+                addHostPlayer(hostPlayer)
+                
+                // Escuchar cambios en la sala
+                listenToRoomChanges()
             },
-            onPlayerLeft = { playerId ->
-                viewModelScope.launch {
-                    val currentPlayers = _players.value.toMutableList()
-                    currentPlayers.removeAll { it.id == playerId }
-                    _players.value = currentPlayers
-                    
-                    // Actualizar la sala
-                    gameRoom?.players?.removeAll { it.id == playerId }
-                }
-            },
-            onRoomInfoRequest = {
-                gameRoom ?: GameRoom(code = _roomCode.value)
+            onError = { error ->
+                Log.e("GameViewModel", "Error creando sala: $error")
+                _isServerRunning.value = false
             }
         )
-        
-        webSocketServer?.start()
-        _isServerRunning.value = true
-        
-        // Actualizar la URL y IP del servidor
+    }
+    
+    private fun addHostPlayer(hostPlayer: Player) {
+        firebaseService.addPlayerToRoom(
+            roomCode = _roomCode.value,
+            player = hostPlayer,
+            onSuccess = {
+                _players.value = listOf(hostPlayer)
+                // No necesitamos modificar gameRoom.players ya que Firebase lo maneja
+            },
+            onError = { error ->
+                Log.e("GameViewModel", "Error agregando jugador host: $error")
+            }
+        )
+    }
+    
+    private fun listenToRoomChanges() {
         viewModelScope.launch {
-            // Esperar un poco para que el servidor obtenga la IP
-            kotlinx.coroutines.delay(1000)
-            _serverUrl.value = webSocketServer?.getServerUrl() ?: ""
-            _serverIp.value = webSocketServer?.getLocalIpAddress() ?: ""
+            firebaseService.listenToRoom(_roomCode.value).collect { room ->
+                room?.let { updatedRoom ->
+                    // Convertir Map a List para la UI
+                    _players.value = updatedRoom.players.values.toList()
+                    gameRoom = updatedRoom
+                    Log.d("GameViewModel", "Sala actualizada: ${updatedRoom.players.size} jugadores")
+                }
+            }
         }
     }
     
@@ -91,7 +107,16 @@ class GameViewModel : ViewModel() {
     
     override fun onCleared() {
         super.onCleared()
-        webSocketServer?.stop()
+        // Eliminar la sala cuando se cierre el ViewModel
+        firebaseService.deleteRoom(
+            roomCode = _roomCode.value,
+            onSuccess = {
+                Log.d("GameViewModel", "Sala eliminada al cerrar ViewModel")
+            },
+            onError = { error ->
+                Log.e("GameViewModel", "Error eliminando sala: $error")
+            }
+        )
         _isServerRunning.value = false
     }
 }

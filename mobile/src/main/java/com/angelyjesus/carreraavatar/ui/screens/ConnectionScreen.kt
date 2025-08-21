@@ -9,21 +9,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.angelyjesus.carreraavatar.config.GameConfig
-import com.angelyjesus.carreraavatar.network.ConnectionState
-import com.angelyjesus.carreraavatar.network.WebSocketService
+import com.angelyjesus.carreraavatar.viewmodel.ConnectionState
+import com.angelyjesus.carreraavatar.viewmodel.MainViewModel
 
 @Composable
 fun ConnectionScreen(
-    webSocketService: WebSocketService,
+    viewModel: MainViewModel,
     onConnectionSuccess: () -> Unit
 ) {
     var roomCode by remember { mutableStateOf("") }
     var playerName by remember { mutableStateOf("") }
-    var serverUrl by remember { mutableStateOf(GameConfig.DEFAULT_SERVER_URL) }
     
-    val connectionState by webSocketService.connectionState.collectAsState()
-    val playerData by webSocketService.playerData.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsState()
+    val playerData by viewModel.playerData.collectAsState()
 
     LaunchedEffect(playerData) {
         if (playerData != null) {
@@ -58,7 +56,7 @@ fun ConnectionScreen(
             is ConnectionState.CONNECTING -> {
                 ConnectionStatusCard(
                     title = "Conectando...",
-                    message = "Estableciendo conexión con el servidor",
+                    message = "Estableciendo conexión con Firebase",
                     color = MaterialTheme.colorScheme.primary
                 )
                 CircularProgressIndicator(
@@ -85,66 +83,50 @@ fun ConnectionScreen(
 
         // Campos de entrada
         OutlinedTextField(
-            value = serverUrl,
-            onValueChange = { serverUrl = it },
-            label = { Text("URL del servidor") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = connectionState is ConnectionState.DISCONNECTED
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
             value = roomCode,
             onValueChange = { roomCode = it.uppercase().take(4) },
             label = { Text("Código de sala") },
             modifier = Modifier.fillMaxWidth(),
+            enabled = connectionState is ConnectionState.DISCONNECTED,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            enabled = connectionState is ConnectionState.DISCONNECTED
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedTextField(
             value = playerName,
-            onValueChange = { playerName = it },
+            onValueChange = { playerName = it.trim() },
             label = { Text("Tu nombre") },
             modifier = Modifier.fillMaxWidth(),
-            enabled = connectionState is ConnectionState.DISCONNECTED
+            enabled = connectionState is ConnectionState.DISCONNECTED,
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Botones
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = {
-                    if (roomCode.isNotBlank() && playerName.isNotBlank()) {
-                        webSocketService.connectToServer(serverUrl)
-                        webSocketService.joinRoom(roomCode, playerName)
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                enabled = roomCode.isNotBlank() && 
-                         playerName.isNotBlank() && 
-                         connectionState is ConnectionState.DISCONNECTED
-            ) {
-                Text("Conectar")
-            }
-
-            if (connectionState !is ConnectionState.DISCONNECTED) {
-                Button(
-                    onClick = { webSocketService.disconnect() },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
-                ) {
-                    Text("Desconectar")
+        // Botón de conexión
+        Button(
+            onClick = {
+                if (roomCode.isNotEmpty() && playerName.isNotEmpty()) {
+                    viewModel.connectToRoom(roomCode, playerName)
                 }
+            },
+            enabled = roomCode.isNotEmpty() && playerName.isNotEmpty() && connectionState is ConnectionState.DISCONNECTED,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Conectar a la sala")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón de desconexión
+        if (connectionState !is ConnectionState.DISCONNECTED) {
+            OutlinedButton(
+                onClick = { viewModel.disconnect() },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Desconectar")
             }
         }
     }
@@ -175,8 +157,8 @@ fun ConnectionStatusCard(
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+                color = color.copy(alpha = 0.8f),
+                textAlign = TextAlign.Center
             )
         }
     }
