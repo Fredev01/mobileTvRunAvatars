@@ -2,14 +2,15 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("com.google.gms.google-services")
 }
 
 android {
-    namespace = "com.example.carreraavatar"
+    namespace = "com.angelyjesus.carreraavatar"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.carreraavatar"
+        applicationId = "com.angelyjesus.carreraavatar"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -49,8 +50,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     
-    // WebSocket y Networking - OkHttp incluye WebSocket por defecto
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation("com.google.firebase:firebase-database-ktx")
+    implementation("com.google.firebase:firebase-analytics-ktx")
     
     // JSON parsing
     implementation("com.google.code.gson:gson:2.10.1")

@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "920832054440",
+    "firebase_url": "https://wearapps-f9a14-default-rtdb.firebaseio.com",
+    "project_id": "wearapps-f9a14",
+    "storage_bucket": "wearapps-f9a14.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920832054440:android:de64f819d052efaf691e9d",
+        "android_client_info": {
+          "package_name": "com.angelyjesus.carreraavatar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzB2zfKNjWkqILGLCLwXi5sQFMCpIp9SE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
