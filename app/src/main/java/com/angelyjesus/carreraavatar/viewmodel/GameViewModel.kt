@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.angelyjesus.carreraavatar.firebase.FirebaseGameService
+import com.angelyjesus.carreraavatar.game.GameEngine
 import com.angelyjesus.carreraavatar.model.GameRoom
 import com.angelyjesus.carreraavatar.model.Player
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,8 +31,44 @@ class GameViewModel : ViewModel() {
     private val _serverIp = MutableStateFlow("")
     val serverIp: StateFlow<String> = _serverIp.asStateFlow()
     
+    // Estados del juego
+    private val _gameState = MutableStateFlow("WAITING")
+    val gameState: StateFlow<String> = _gameState.asStateFlow()
+    
+    private val _winner = MutableStateFlow<Player?>(null)
+    val winner: StateFlow<Player?> = _winner.asStateFlow()
+    
+    // Callback para cambios de estado del juego
+    var onGameStateChanged: ((String) -> Unit)? = null
+    
     private var gameRoom: GameRoom? = null
     private val firebaseService = FirebaseGameService()
+    private val gameEngine = GameEngine()
+    
+    init {
+        // Configurar callbacks del motor de juego
+        gameEngine.onGameStateChanged = { state ->
+            _gameState.value = state
+            // Notificar también al callback de navegación
+            onGameStateChanged?.invoke(state)
+        }
+        
+        gameEngine.onGameFinished = { winnerPlayer ->
+            _winner.value = winnerPlayer
+        }
+        
+        gameEngine.onPlayerProgressUpdated = { playerId, newProgress ->
+            // Actualizar el progreso del jugador en la lista local
+            val currentPlayers = _players.value.toMutableList()
+            val index = currentPlayers.indexOfFirst { it.id == playerId }
+            if (index != -1) {
+                val player = currentPlayers[index]
+                val updatedPlayer = player.copy(progress = newProgress)
+                currentPlayers[index] = updatedPlayer
+                _players.value = currentPlayers
+            }
+        }
+    }
     
     fun initialize(context: Context) {
         generateRoomCode()
@@ -101,12 +138,55 @@ class GameViewModel : ViewModel() {
         }
     }
     
+    /**
+     * Inicia el juego
+     */
+    fun startGame() {
+        if (_players.value.isNotEmpty()) {
+            Log.d("GameViewModel", "Iniciando juego...")
+            gameEngine.startGame(_players.value)
+        }
+    }
+    
+    /**
+     * Procesa un tap de un jugador
+     */
+    fun processPlayerTap(playerId: String) {
+        gameEngine.processPlayerTap(playerId, _players.value)
+    }
+    
+    /**
+     * Vuelve al lobby después de terminar el juego
+     */
+    fun returnToLobby() {
+        gameEngine.stopGame()
+        _winner.value = null
+        Log.d("GameViewModel", "Volviendo al lobby")
+    }
+    
+    /**
+     * Pausa el juego
+     */
+    fun pauseGame() {
+        gameEngine.pauseGame()
+    }
+    
+    /**
+     * Reanuda el juego
+     */
+    fun resumeGame() {
+        gameEngine.resumeGame(_players.value)
+    }
+    
     fun getLocalIpAddress(): String {
         return _serverIp.value
     }
     
     override fun onCleared() {
         super.onCleared()
+        // Limpiar el motor de juego
+        gameEngine.cleanup()
+        
         // Eliminar la sala cuando se cierre el ViewModel
         firebaseService.deleteRoom(
             roomCode = _roomCode.value,
