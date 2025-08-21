@@ -99,10 +99,21 @@ class MainViewModel : ViewModel() {
                     _currentRoom.value = updatedRoom
                     
                     // Actualizar estado del juego
+                    val playerId = _playerData.value?.playerId
+                    val playerTapCount = if (playerId != null) {
+                        // Contar los taps del jugador actual
+                        val playerTaps = updatedRoom.gameState.taps[playerId]
+                        when (playerTaps) {
+                            is Int -> playerTaps
+                            is Map<*, *> -> playerTaps.size // Contar el número de entradas de tap
+                            else -> 0
+                        }
+                    } else 0
+                    
                     _gameState.value = GameState(
                         players = updatedRoom.players.values.toList(),
                         isGameActive = updatedRoom.gameState.isActive,
-                        tapCount = updatedRoom.gameState.taps[_playerData.value?.playerId] ?: 0
+                        tapCount = playerTapCount
                     )
                     
                     Log.d("MainViewModel", "Sala actualizada: ${updatedRoom.players.size} jugadores")
