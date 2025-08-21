@@ -21,6 +21,8 @@ import androidx.tv.material3.Text
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.angelyjesus.carreraavatar.model.Player
 import com.angelyjesus.carreraavatar.viewmodel.GameViewModel
 
@@ -147,22 +149,17 @@ private fun RaceTrackCanvas(
             // Dibujar pista de carreras
             drawRaceTrack(trackWidth, trackHeight, laneHeight, startX, finishX)
             
-            // Dibujar jugadores con avatares
-            players.forEachIndexed { index, player ->
-                val laneY = (index + 1) * laneHeight - laneHeight / 2
-                val playerX = startX + (player.progress ?: 0f) * (finishX - startX)
-                
-                drawPlayerAvatar(player, playerX, laneY, laneHeight, textMeasurer)
-            }
+            // Las imágenes de avatares se dibujan fuera del Canvas
+            // Solo dibujar marcadores de posición aquí si es necesario
             
             // Dibujar línea de meta
             drawFinishLine(finishX, trackHeight)
         }
         
-        // Nombres de jugadores superpuestos como Text composables
+        // Avatares de Pikachu y nombres de jugadores superpuestos
         players.forEachIndexed { index, player ->
             val progress = player.progress ?: 0f
-            PlayerNameText(
+            PlayerAvatarAndName(
                 player = player,
                 index = index,
                 progress = progress,
@@ -173,18 +170,32 @@ private fun RaceTrackCanvas(
 }
 
 @Composable
-private fun PlayerNameText(
+private fun PlayerAvatarAndName(
     player: Player,
     index: Int,
     progress: Float,
     modifier: Modifier = Modifier
 ) {
-    // Simplificamos usando Box y valores fijos para evitar problemas de imports
     Box(modifier = modifier) {
-        // Calculamos posición aproximada para el texto
-        val laneOffset = (index * 25) + 100  // Aproximación de la posición Y
-        val progressOffset = (progress * 300).coerceAtMost(250f)  // Aproximación de la posición X
+        // Calcular posición del jugador en la pista
+        val laneOffset = (index * 25) + 80  // Posición Y del carril
+        val progressOffset = 50 + (progress * 250).coerceAtMost(250f)  // Posición X basada en progreso
         
+        // Avatar de Pikachu
+        AsyncImage(
+            model = player.avatarId ?: "https://pokeapi.co/api/v2/pokemon/25/", // URL por defecto de Pikachu
+            contentDescription = "Avatar de ${player.name}",
+            modifier = Modifier
+                .size(40.dp)
+                .offset(
+                    x = progressOffset.dp,
+                    y = laneOffset.dp
+                )
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
+        
+        // Nombre del jugador
         Text(
             text = player.name,
             color = Color.White,
@@ -193,7 +204,7 @@ private fun PlayerNameText(
             modifier = Modifier
                 .offset(
                     x = progressOffset.dp,
-                    y = laneOffset.dp
+                    y = (laneOffset + 45).dp
                 )
         )
     }
