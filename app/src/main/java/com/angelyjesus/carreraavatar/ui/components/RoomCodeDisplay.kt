@@ -54,7 +54,7 @@ fun RoomCodeDisplay(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Información de conexión
+        // Información de conexión simplificada
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -74,18 +74,12 @@ fun RoomCodeDisplay(
             )
             
             Text(
-                text = "2. Usa la IP mostrada arriba",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.7f),
-                textAlign = TextAlign.Center
-            )
-            
-            Text(
-                text = "3. Ingresa este código: $roomCode",
+                text = "2. Ingresa este código: $roomCode",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
     }

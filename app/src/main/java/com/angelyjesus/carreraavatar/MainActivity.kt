@@ -10,8 +10,9 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Surface
-import com.angelyjesus.carreraavatar.ui.screens.GameLobbyScreen
+import com.angelyjesus.carreraavatar.navigation.GameNavigation
 import com.angelyjesus.carreraavatar.ui.theme.CarreraAvatarTheme
+import com.angelyjesus.carreraavatar.viewmodel.GameViewModel
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalTvMaterial3Api::class)
@@ -23,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     shape = RectangleShape
                 ) {
-                    GameLobbyScreen()
+                    GameNavigation(GameViewModel())
                 }
             }
         }
@@ -32,8 +33,8 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true)
 @Composable
-fun GameLobbyPreview() {
+fun GameNavigationPreview() {
     CarreraAvatarTheme {
-        GameLobbyScreen()
+        GameNavigation(GameViewModel())
     }
 }
