@@ -112,6 +112,34 @@ class FirebaseGameService {
     }
     
     /**
+     * Actualizar el estado detallado del juego (currentState, winner, countdown)
+     */
+    fun updateDetailedGameState(roomCode: String, currentState: String, winner: Player? = null, countdown: Int = 3, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        val updates = mutableMapOf<String, Any>(
+            "gameState/currentState" to currentState,
+            "gameState/countdown" to countdown
+        )
+        
+        // Solo actualizar isActive basado en el estado
+        updates["gameState/isActive"] = (currentState == "RACING")
+        
+        // Agregar ganador si está disponible
+        winner?.let {
+            updates["gameState/winner"] = it
+        }
+        
+        roomsRef.child(roomCode).updateChildren(updates)
+            .addOnSuccessListener {
+                Log.d("FirebaseGameService", "Estado detallado actualizado: $currentState")
+                onSuccess()
+            }
+            .addOnFailureListener { exception ->
+                Log.e("FirebaseGameService", "Error actualizando estado detallado: ${exception.message}")
+                onError(exception.message ?: "Error desconocido")
+            }
+    }
+    
+    /**
      * Actualizar el progreso de un jugador específico
      */
     fun updatePlayerProgress(roomCode: String, playerId: String, progress: Float, onSuccess: () -> Unit, onError: (String) -> Unit) {

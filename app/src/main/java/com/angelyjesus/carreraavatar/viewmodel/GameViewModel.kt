@@ -49,12 +49,21 @@ class GameViewModel : ViewModel() {
         // Configurar callbacks del motor de juego
         gameEngine.onGameStateChanged = { state ->
             _gameState.value = state
+            // Sincronizar estado detallado con Firebase
+            syncDetailedGameStateToFirebase(state)
             // Notificar también al callback de navegación
             onGameStateChanged?.invoke(state)
         }
         
         gameEngine.onGameFinished = { winnerPlayer ->
             _winner.value = winnerPlayer
+            // Sincronizar ganador con Firebase
+            syncDetailedGameStateToFirebase("FINISHED", winnerPlayer)
+        }
+        
+        gameEngine.onCountdownChanged = { countdown ->
+            // Sincronizar countdown en tiempo real
+            syncDetailedGameStateToFirebase("COUNTDOWN", null, countdown)
         }
         
         gameEngine.onPlayerProgressUpdated = { playerId, newProgress ->
@@ -208,6 +217,26 @@ class GameViewModel : ViewModel() {
     
     fun getLocalIpAddress(): String {
         return _serverIp.value
+    }
+    
+    /**
+     * Sincroniza el estado detallado del juego con Firebase
+     */
+    private fun syncDetailedGameStateToFirebase(currentState: String, winner: Player? = null, countdown: Int? = null) {
+        val finalCountdown = countdown ?: if (currentState == "COUNTDOWN") gameEngine.countdown.value else 3
+        
+        firebaseService.updateDetailedGameState(
+            roomCode = _roomCode.value,
+            currentState = currentState,
+            winner = winner,
+            countdown = finalCountdown,
+            onSuccess = {
+                Log.d("GameViewModel", "Estado detallado sincronizado: $currentState (countdown: $finalCountdown)")
+            },
+            onError = { error ->
+                Log.e("GameViewModel", "Error sincronizando estado: $error")
+            }
+        )
     }
     
     override fun onCleared() {

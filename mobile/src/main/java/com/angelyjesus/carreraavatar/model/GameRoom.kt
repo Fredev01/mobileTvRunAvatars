@@ -11,5 +11,8 @@ data class GameState @JvmOverloads constructor(
     val isActive: Boolean = false,
     val startTime: Long? = null,
     val endTime: Long? = null,
-    val taps: Map<String, Any> = emptyMap() // Cambiar a Any para manejar tanto Int como Map
+    val taps: Map<String, Any> = emptyMap(), // Cambiar a Any para manejar tanto Int como Map
+    val currentState: String = "WAITING", // Estados: WAITING, COUNTDOWN, RACING, FINISHED
+    val winner: Player? = null,
+    val countdown: Int = 3
 )
