@@ -18,6 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Text
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
 import com.angelyjesus.carreraavatar.model.Player
 import com.angelyjesus.carreraavatar.viewmodel.GameViewModel
 
@@ -130,6 +133,8 @@ private fun RaceTrackCanvas(
     gameState: String,
     modifier: Modifier = Modifier
 ) {
+    val textMeasurer = rememberTextMeasurer()
+    
     Box(modifier = modifier) {
         // Canvas para la pista y avatares
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -142,12 +147,12 @@ private fun RaceTrackCanvas(
             // Dibujar pista de carreras
             drawRaceTrack(trackWidth, trackHeight, laneHeight, startX, finishX)
             
-            // Dibujar jugadores (solo círculos)
+            // Dibujar jugadores con avatares
             players.forEachIndexed { index, player ->
                 val laneY = (index + 1) * laneHeight - laneHeight / 2
                 val playerX = startX + (player.progress ?: 0f) * (finishX - startX)
                 
-                drawPlayer(player, playerX, laneY, laneHeight)
+                drawPlayerAvatar(player, playerX, laneY, laneHeight, textMeasurer)
             }
             
             // Dibujar línea de meta
@@ -236,23 +241,34 @@ private fun DrawScope.drawRaceTrack(
     )
 }
 
-private fun DrawScope.drawPlayer(
+private fun DrawScope.drawPlayerAvatar(
     player: Player,
     x: Float,
     y: Float,
-    laneHeight: Float
+    laneHeight: Float,
+    textMeasurer: androidx.compose.ui.text.TextMeasurer
 ) {
-    val playerSize = laneHeight * 0.6f
+    val avatarSize = laneHeight * 0.7f
     
-    // Dibujar avatar del jugador
-    drawCircle(
-        color = getPlayerColor(player.avatarId ?: "default"),
-        radius = playerSize / 2,
-        center = Offset(x, y)
+    // Obtener emoji del avatar basado en el avatarId (orientado hacia la derecha)
+    val avatarEmoji = getAvatarEmoji(player.avatarId ?: "default")
+    
+    // Solo dibujar el emoji del avatar sin círculos de fondo
+    val textLayoutResult = textMeasurer.measure(
+        text = avatarEmoji,
+        style = TextStyle(
+            fontSize = (avatarSize * 0.8f).sp,
+            color = Color.Black
+        )
     )
     
-    // Para el texto del nombre, lo manejaremos fuera del Canvas
-    // usando Text composables posicionados absolutamente
+    drawText(
+        textLayoutResult = textLayoutResult,
+        topLeft = Offset(
+            x - textLayoutResult.size.width / 2,
+            y - textLayoutResult.size.height / 2
+        )
+    )
 }
 
 private fun DrawScope.drawFinishLine(finishX: Float, trackHeight: Float) {
@@ -274,6 +290,20 @@ private fun DrawScope.drawFinishLine(finishX: Float, trackHeight: Float) {
                 size = androidx.compose.ui.geometry.Size(10f, squareSize)
             )
         }
+    }
+}
+
+private fun getAvatarEmoji(avatarId: String): String {
+    return when {
+        avatarId.contains("red") -> "🏎️"
+        avatarId.contains("blue") -> "🚙"
+        avatarId.contains("green") -> "🚗"
+        avatarId.contains("yellow") -> "🚕"
+        avatarId.contains("purple") -> "🚐"
+        avatarId.contains("orange") -> "🚛"
+        avatarId.contains("pink") -> "🚚"
+        avatarId.contains("cyan") -> "🚓"
+        else -> "🚗"
     }
 }
 
