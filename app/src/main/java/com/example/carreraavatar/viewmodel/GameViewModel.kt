@@ -29,6 +29,9 @@ class GameViewModel : ViewModel() {
     private val _serverIp = MutableStateFlow("")
     val serverIp: StateFlow<String> = _serverIp.asStateFlow()
     
+    private val _gameStarted = MutableStateFlow(false)
+    val gameStarted: StateFlow<Boolean> = _gameStarted.asStateFlow()
+    
     private var gameRoom: GameRoom? = null
     private var webSocketServer: SimpleWebSocketServer? = null
     
@@ -82,6 +85,25 @@ class GameViewModel : ViewModel() {
             kotlinx.coroutines.delay(1000)
             _serverUrl.value = webSocketServer?.getServerUrl() ?: ""
             _serverIp.value = webSocketServer?.getLocalIpAddress() ?: ""
+        }
+    }
+    
+    fun startGame() {
+        viewModelScope.launch {
+            if (_players.value.isNotEmpty()) {
+                _gameStarted.value = true
+                
+                // TODO: Implementar lógica del juego
+                // - Cambiar a pantalla de juego
+                // - Iniciar mecánicas del juego
+                // - Enviar mensaje a todos los jugadores
+                
+                // Ejemplo: Enviar mensaje a todos los jugadores
+                webSocketServer?.let { server ->
+                    // Aquí podrías enviar un mensaje de inicio de juego
+                    // server.broadcastToAll(WebSocketMessage.GameStarted())
+                }
+            }
         }
     }
     

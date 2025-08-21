@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.tv.material3.Button
 import com.example.carreraavatar.ui.components.PlayersList
 import com.example.carreraavatar.ui.components.RoomCodeDisplay
 import com.example.carreraavatar.viewmodel.GameViewModel
@@ -30,8 +31,7 @@ fun GameLobbyScreen(
     val roomCode by viewModel.roomCode.collectAsState()
     val players by viewModel.players.collectAsState()
     val isServerRunning by viewModel.isServerRunning.collectAsState()
-    val serverUrl by viewModel.serverUrl.collectAsState()
-    val serverIp by viewModel.serverIp.collectAsState()
+    val gameStarted by viewModel.gameStarted.collectAsState()
     
     // Inicializar el ViewModel con el contexto
     val context = LocalContext.current
@@ -70,34 +70,15 @@ fun GameLobbyScreen(
                 modifier = Modifier.padding(vertical = 32.dp)
             )
             
-            // Server status and IP
-            if (isServerRunning && serverIp.isNotEmpty()) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
+            // Server status
+            if (isServerRunning) {
+                Text(
+                    text = "Servidor activo - Esperando jugadores",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color(0xFF4CAF50),
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    Text(
-                        text = "Servidor activo",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color(0xFF4CAF50),
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        text = "IP del servidor: $serverIp",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                    Text(
-                        text = "URL: $serverUrl",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
+                )
             } else {
                 Text(
                     text = "Servidor no disponible",
@@ -136,6 +117,25 @@ fun GameLobbyScreen(
                     PlayersList(
                         players = players,
                         modifier = Modifier.align(Alignment.TopCenter)
+                    )
+                }
+            }
+            
+            // Start Game Button
+            if (players.isNotEmpty()) {
+                Button(
+                    onClick = {
+                        viewModel.startGame()
+                    },
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .height(56.dp)
+                        .width(200.dp)
+                ) {
+                    Text(
+                        text = "Iniciar Juego",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
                 }
             }
