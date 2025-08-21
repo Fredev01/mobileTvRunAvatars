@@ -4,12 +4,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.angelyjesus.carreraavatar.data.Avatar
 import com.angelyjesus.carreraavatar.data.AvatarRepository
 import com.angelyjesus.carreraavatar.viewmodel.MainViewModel
@@ -48,7 +54,7 @@ fun AvatarSelectionScreen(
 
         // Grid de avatares
         LazyVerticalGrid(
-            columns = GridCells.Fixed(2), // Cambiar a 2 columnas para mejor visualización
+            columns = GridCells.Fixed(2), // 2 columnas para 6 Pokémon
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.weight(1f)
@@ -88,6 +94,7 @@ fun AvatarSelectionScreen(
             onClick = {
                 selectedAvatar?.let { avatar ->
                     viewModel.selectAvatar(avatar.id)
+                    onAvatarSelected() // Llamar al callback después de seleccionar
                 }
             },
             enabled = selectedAvatar != null,
@@ -106,7 +113,7 @@ fun AvatarCard(
 ) {
     Card(
         modifier = Modifier
-            .size(120.dp)
+            .size(140.dp) // Tamaño más grande para mejor visualización de Pokémon
             .padding(4.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) {
@@ -118,7 +125,7 @@ fun AvatarCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = if (isSelected) 8.dp else 2.dp
         ),
-        onClick = onClick, // Hacer la tarjeta clickeable
+        onClick = onClick,
         border = if (isSelected) {
             androidx.compose.foundation.BorderStroke(
                 width = 3.dp,
@@ -135,18 +142,37 @@ fun AvatarCard(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = avatar.emoji,
-                    style = MaterialTheme.typography.displayMedium
-                )
+                // Mostrar imagen del Pokémon
+                if (avatar.imageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(avatar.imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = avatar.name,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    // Fallback al emoji si no hay imagen
+                    Text(
+                        text = avatar.emoji,
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(4.dp))
+
                 Text(
                     text = avatar.name,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
-                    maxLines = 2
+                    maxLines = 1,
+                    modifier = Modifier.height(24.dp)
                 )
             }
         }
     }
-} 
+}

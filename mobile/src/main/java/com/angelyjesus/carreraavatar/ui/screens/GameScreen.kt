@@ -3,14 +3,18 @@ package com.angelyjesus.carreraavatar.ui.screens
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.angelyjesus.carreraavatar.data.AvatarRepository
 import com.angelyjesus.carreraavatar.model.Player
 import com.angelyjesus.carreraavatar.viewmodel.MainViewModel
@@ -72,7 +76,7 @@ fun GameScreen(
         Spacer(modifier = Modifier.height(32.dp)) // Aumentar espaciado
 
         // Información del jugador
-        PlayerInfoCard(playerData = playerData)
+        PlayerInfoCard(playerData = playerData, gameState = gameState)
         
         Spacer(modifier = Modifier.height(24.dp)) // Aumentar espaciado
         
@@ -115,7 +119,7 @@ fun TapButton(enabled: Boolean = true, onTap: () -> Unit) {
 }
 
 @Composable
-fun PlayerInfoCard(playerData: PlayerData) {
+fun PlayerInfoCard(playerData: PlayerData, gameState: GameState?) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -143,13 +147,26 @@ fun PlayerInfoCard(playerData: PlayerData) {
                 style = MaterialTheme.typography.bodyMedium
             )
             
-            playerData.selectedAvatar?.let { avatarId ->
-                val avatar = AvatarRepository.getAvatarById(avatarId)
-                avatar?.let {
-                    Text(
-                        text = "Avatar: ${it.emoji}",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+            // Mostrar avatar del jugador actual desde los datos de Firebase
+            gameState?.players?.find { it.id == playerData.playerId }?.let { currentPlayer ->
+                currentPlayer.avatarImageUrl?.let { imageUrl ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            text = "Avatar: ",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        AsyncImage(
+                            model = imageUrl,
+                            contentDescription = "Avatar de ${playerData.playerName}",
+                            modifier = Modifier
+                                .size(32.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
@@ -214,19 +231,23 @@ fun GameInfoCard(gameState: GameState, tapCount: Int) {
             // Lista de jugadores con progreso
             gameState.players.forEach { player ->
                 Row(
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier.padding(vertical = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val avatar = player.avatarId?.let { AvatarRepository.getAvatarById(it) }
-                        avatar?.let {
-                            Text(
-                                text = it.emoji,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(end = 8.dp)
+                        // Mostrar imagen de Pokémon desde Firebase
+                        player.avatarImageUrl?.let { imageUrl ->
+                            AsyncImage(
+                                model = imageUrl,
+                                contentDescription = "Avatar de ${player.name}",
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .padding(end = 8.dp),
+                                contentScale = ContentScale.Crop
                             )
                         }
                         Text(

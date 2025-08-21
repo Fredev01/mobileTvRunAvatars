@@ -135,12 +135,17 @@ class MainViewModel : ViewModel() {
         val playerId = _playerData.value?.playerId ?: return
         val roomCode = _playerData.value?.roomCode ?: return
         
+        // Obtener la URL de la imagen del avatar seleccionado
+        val avatar = com.angelyjesus.carreraavatar.data.AvatarRepository.getAvatarById(avatarId)
+        val avatarImageUrl = avatar?.imageUrl ?: ""
+        
         firebaseClient.selectAvatar(
             roomCode = roomCode,
             playerId = playerId,
             avatarId = avatarId,
+            avatarImageUrl = avatarImageUrl,
             onSuccess = {
-                Log.d("MainViewModel", "Avatar seleccionado: $avatarId")
+                Log.d("MainViewModel", "Avatar seleccionado: $avatarId con URL: $avatarImageUrl")
                 _playerData.value = _playerData.value?.copy(selectedAvatar = avatarId)
                 _currentScreen.value = Screen.GAME
             },
