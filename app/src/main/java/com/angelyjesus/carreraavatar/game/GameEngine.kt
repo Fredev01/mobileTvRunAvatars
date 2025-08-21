@@ -23,7 +23,7 @@ class GameEngine {
     val countdown: StateFlow<Int> = _countdown.asStateFlow()
     
     // Configuración del juego
-    private val raceDuration = 30000L // 30 segundos
+    private val raceDuration = 60000L // 60 segundos (1 minuto)
     private val tapMultiplier = 0.02f // Cada tap avanza 2% de la pista (50 taps para ganar)
     private val maxProgress = 1.0f // 100% de la pista
     
