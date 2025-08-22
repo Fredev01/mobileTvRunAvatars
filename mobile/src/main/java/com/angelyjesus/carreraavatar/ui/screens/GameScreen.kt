@@ -57,7 +57,7 @@ fun GameScreen(
 
         // Botón de tap principal
         TapButton(
-            enabled = gameState?.currentState == "RACING",
+            enabled = gameState?.currentState == "RACING" && gameState?.winner == null,
             onTap = {
                 tapCount++
                 viewModel.sendTap()

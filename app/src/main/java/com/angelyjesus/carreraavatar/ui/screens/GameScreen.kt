@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Button
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
@@ -136,6 +137,7 @@ private fun RaceTrackCanvas(
     modifier: Modifier = Modifier
 ) {
     val textMeasurer = rememberTextMeasurer()
+    var canvasWidth by remember { mutableStateOf(0f) }
     
     Box(modifier = modifier) {
         // Canvas para la pista y avatares
@@ -145,6 +147,9 @@ private fun RaceTrackCanvas(
             val laneHeight = trackHeight / 4
             val startX = 50f
             val finishX = trackWidth - 100f
+            
+            // Guardar el ancho del canvas para usarlo en los avatares
+            canvasWidth = trackWidth
             
             // Dibujar pista de carreras
             drawRaceTrack(trackWidth, trackHeight, laneHeight, startX, finishX)
@@ -163,6 +168,7 @@ private fun RaceTrackCanvas(
                 player = player,
                 index = index,
                 progress = progress,
+                trackWidth = canvasWidth,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -174,15 +180,22 @@ private fun PlayerAvatarAndName(
     player: Player,
     index: Int,
     progress: Float,
+    trackWidth: Float,
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
-        // Calcular posición del jugador en la pista
+        // Calcular posición del jugador en la pista considerando el tamaño del avatar
         val laneOffset = (index * 25) + 80  // Posición Y del carril
-        // Cálculo dinámico basado en el ancho de la pista
-        val trackWidth = 300f // Ancho disponible para la carrera
         val startX = 50f
-        val progressOffset = startX + (progress * trackWidth)  // Posición X dinámica sin hardcodeo
+        val finishX = trackWidth - 100f // Línea de meta
+        val availableTrackWidth = finishX - startX // Ancho real de la pista
+        val avatarSize = 64f // Tamaño del avatar en dp
+        
+        // Cálculo ajustado: el avatar debe estar centrado en la línea de meta cuando progress = 1.0
+        // Ajustamos para que coincida con 50 taps (2% por tap)
+        val maxProgressDistance = availableTrackWidth - (avatarSize / 2)
+        val adjustedProgress = (progress * 0.77f).coerceAtMost(1.0f) // Ajustar progreso visual a 77%
+        val progressOffset = startX + (adjustedProgress * maxProgressDistance)
         
         // Avatar de Pokémon desde Firebase
         AsyncImage(
@@ -233,7 +246,7 @@ private fun DrawScope.drawRaceTrack(
         drawLine(
             color = Color.White,
             start = Offset(0f, y),
-            end = Offset(trackWidth, y),
+            end = Offset(finishX, y),
             strokeWidth = 4f
         )
     }
@@ -430,19 +443,5 @@ private fun GameInfo(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun Button(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    androidx.tv.material3.Button(
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        content()
     }
 }
