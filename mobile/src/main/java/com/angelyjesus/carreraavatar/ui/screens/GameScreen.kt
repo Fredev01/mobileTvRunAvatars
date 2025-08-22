@@ -84,6 +84,26 @@ fun GameScreen(
         gameState?.let { state ->
             GameInfoCard(gameState = state, tapCount = tapCount)
         }
+        
+        // Botón para regresar al inicio cuando el juego termine
+        if (gameState?.currentState == "FINISHED") {
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Button(
+                onClick = { viewModel.disconnect() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                )
+            ) {
+                Text(
+                    text = "Regresar al Inicio",
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+        }
     }
 }
 
