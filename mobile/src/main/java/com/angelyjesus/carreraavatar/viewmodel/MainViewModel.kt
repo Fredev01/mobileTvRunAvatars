@@ -163,6 +163,19 @@ class MainViewModel : ViewModel() {
         val playerId = _playerData.value?.playerId ?: return
         val roomCode = _playerData.value?.roomCode ?: return
         
+        // Verificación simple: solo enviar si el juego está en estado RACING
+        val currentGameState = _gameState.value
+        if (currentGameState?.currentState != "RACING") {
+            Log.d("MainViewModel", "Juego no está en estado RACING, ignorando tap")
+            return
+        }
+        
+        // Verificar si ya hay un ganador
+        if (currentGameState.winner != null) {
+            Log.d("MainViewModel", "Ya hay un ganador, ignorando tap")
+            return
+        }
+        
         firebaseClient.sendTapInput(
             roomCode = roomCode,
             playerId = playerId,

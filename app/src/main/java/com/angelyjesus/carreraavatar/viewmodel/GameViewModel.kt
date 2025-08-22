@@ -84,11 +84,6 @@ class GameViewModel : ViewModel() {
                 currentPlayers[index] = updatedPlayer
                 _players.value = currentPlayers
                 
-                // Verificar si este jugador ganó (ahora con datos actualizados)
-                if (newProgress >= 1.0f) {
-                    gameEngine.finishGame(updatedPlayer)
-                }
-                
                 // Sincronizar progreso con Firebase
                 updatePlayerProgressInFirebase(playerId, newProgress)
             }
@@ -173,18 +168,25 @@ class GameViewModel : ViewModel() {
                     val firebaseTapCount = tapsData.size
                     val player = _players.value.find { it.id == playerId }
                     if (player != null) {
+                        // Verificar si el jugador ya ganó
+                        val currentProgress = player.progress ?: 0f
+                        if (currentProgress >= 1.0f) {
+                            // El jugador ya ganó, no procesar más taps
+                            return@forEach
+                        }
+                        
                         // Obtener cuántos taps ya hemos procesado para este jugador
                         val alreadyProcessed = processedTapsPerPlayer[playerId] ?: 0
                         val newTaps = firebaseTapCount - alreadyProcessed
                         
-                        Log.d("GameViewModel", "Player $playerId: Firebase taps=$firebaseTapCount, already processed=$alreadyProcessed, new taps=$newTaps, current progress=${((player.progress ?: 0f)*100).toInt()}%")
-                        
                         // Solo procesar si hay nuevos taps
                         if (newTaps > 0) {
-                            // Procesar solo 1 tap por vez para mantener sincronización
-                            gameEngine.processPlayerTap(playerId, _players.value)
+                            // Procesar cada tap nuevo
+                            repeat(newTaps) {
+                                gameEngine.processPlayerTap(playerId, _players.value)
+                            }
                             // Actualizar contador de taps procesados
-                            processedTapsPerPlayer[playerId] = alreadyProcessed + 1
+                            processedTapsPerPlayer[playerId] = firebaseTapCount
                         }
                     }
                 }

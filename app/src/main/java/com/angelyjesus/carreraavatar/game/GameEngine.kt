@@ -133,14 +133,20 @@ class GameEngine {
             return
         }
         
+        // Verificar si el jugador ya ganó
+        val currentProgress = player.progress ?: 0f
+        if (currentProgress >= maxProgress) {
+            Log.d("GameEngine", "Jugador ${player.name} ya ganó, ignorando tap")
+            return
+        }
+        
         // Incrementar contador de taps
         val currentTaps = tapCounter.incrementAndGet()
         
         // Calcular progreso basado en taps
-        val currentProgress = player.progress ?: 0f
         val newProgress = (currentProgress + tapMultiplier).coerceAtMost(maxProgress)
         
-        // Notificar actualización del progreso (el ViewModel se encargará de actualizar la lista)
+        // Notificar actualización del progreso
         onPlayerProgressUpdated?.invoke(playerId, newProgress)
         
         Log.d("GameEngine", "Tap de ${player.name}: ${(newProgress * 100).toInt()}%")
