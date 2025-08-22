@@ -103,8 +103,8 @@ fun GameScreen(
         if (gameState == "FINISHED") {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
+                    .align(Alignment.BottomStart)
+                    .padding(start = 32.dp, bottom = 32.dp)
             ) {
                 Button(
                     onClick = { 
@@ -184,8 +184,9 @@ private fun PlayerAvatarAndName(
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier) {
-        // Calcular posición del jugador en la pista considerando el tamaño del avatar
-        val laneOffset = (index * 25) + 80  // Posición Y del carril
+        // Calcular posición del jugador en la pista con carriles separados
+        val laneHeight = 70f // Altura de cada carril
+        val laneOffset = (index * laneHeight) + 20  // Posición Y del carril con separación adecuada
         val startX = 50f
         val finishX = trackWidth - 100f // Línea de meta
         val availableTrackWidth = finishX - startX // Ancho real de la pista
@@ -361,12 +362,12 @@ private fun GameInfo(
     ) {
         when (gameState) {
             "RACING" -> {
-                // Mostrar progreso de la carrera con avatares
+                // Mostrar progreso de la carrera con avatares (más compacto)
                 players.forEach { player ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 4.dp),
+                            .padding(vertical = 1.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -378,22 +379,24 @@ private fun GameInfo(
                                 model = player.avatarImageUrl ?: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png",
                                 contentDescription = "Avatar de ${player.name}",
                                 modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(RoundedCornerShape(4.dp)),
+                                    .size(16.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
                                 contentScale = ContentScale.Fit
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = player.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Color.White
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White,
+                                fontSize = 12.sp
                             )
                         }
                         Text(
                             text = "${((player.progress ?: 0f) * 100).toInt()}%",
-                            style = MaterialTheme.typography.bodyLarge,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF4CAF50),
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     }
                 }
