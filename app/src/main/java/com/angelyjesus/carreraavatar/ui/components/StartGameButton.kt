@@ -26,13 +26,13 @@ fun StartGameButton(
         onClick = onStartGame,
         enabled = isEnabled,
         modifier = modifier
-            .height(80.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .height(60.dp)
+            .width(200.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(
                 if (isEnabled) Color(0xFF4CAF50) else Color(0xFF9E9E9E)
             ),
-        contentPadding = PaddingValues(16.dp)
+        contentPadding = PaddingValues(12.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.Center,
@@ -40,13 +40,13 @@ fun StartGameButton(
         ) {
             Text(
                 text = "🚀",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(end = 12.dp)
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(end = 8.dp)
             )
             Text(
                 text = "INICIAR JUEGO",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontSize = 28.sp,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 ),
                 color = Color.White,
